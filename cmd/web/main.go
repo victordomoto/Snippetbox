@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/tls"
 	"database/sql"
 	"flag"
 	"log"
@@ -17,7 +16,6 @@ import (
 	"snippetbox.jmorelli.dev/internal/models"
 )
 
-// Application hold application-wide dependencies for the web application
 type application struct {
 	errorLog       *log.Logger
 	infoLog        *log.Logger
@@ -31,7 +29,7 @@ type application struct {
 
 func main() {
 	addr := flag.String("addr", ":4000", "HTTP network address")
-	dsn := flag.String("dsn", "web:lua@/snippetbox?parseTime=true", "MySQL data source name")
+	dsn := flag.String("dsn", "root:root@tcp(127.0.0.1:3306)/snippetbox?parseTime=true", "MySQL data source name")
 	debug := flag.Bool("debug", false, "Debug mode - disabled by default")
 	flag.Parse()
 
@@ -54,7 +52,7 @@ func main() {
 	sessionManager := scs.New()
 	sessionManager.Store = mysqlstore.New(db)
 	sessionManager.Lifetime = 12 * time.Hour
-	sessionManager.Cookie.Secure = true
+	sessionManager.Cookie.Secure = false // Desabilite isso se não estiver usando HTTPS
 
 	app := &application{
 		errorLog:       errorLog,
@@ -67,26 +65,19 @@ func main() {
 		sessionManager: sessionManager,
 	}
 
-	// For better performance under heavy workload
-	tlsConfig := &tls.Config{
-		CurvePreferences: []tls.CurveID{tls.X25519, tls.CurveP256},
-	}
-
 	srv := &http.Server{
 		Addr:         *addr,
 		ErrorLog:     errorLog,
 		Handler:      app.routes(),
-		TLSConfig:    tlsConfig,
 		IdleTimeout:  time.Minute,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
 
 	infoLog.Printf("Starting server on %s", *addr)
-	err = srv.ListenAndServeTLS("./tls/cert.pem", "./tls/key.pem")
+	err = srv.ListenAndServe() // Usar ListenAndServe em vez de ListenAndServeTLS
 	errorLog.Fatal(err)
 }
-
 func openDB(dsn string) (*sql.DB, error) {
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
