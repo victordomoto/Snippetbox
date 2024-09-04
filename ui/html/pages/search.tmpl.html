@@ -1,0 +1,18 @@
+{{define "title"}}Search Results{{end}}
+
+{{define "main"}}
+<h1>Search Results for "{{.SearchQuery}}"</h1>
+{{if .Snippets}}
+    <ul>
+        {{range .Snippets}}
+            <li>
+                <a href="/snippet/view/{{.ID}}">{{.Title}}</a>
+                <p>{{.Content}}</p>
+                <small>Created on: {{humanDate .Created}}</small>
+            </li>
+        {{end}}
+    </ul>
+{{else}}
+    <p>No snippets found for your query.</p>
+{{end}}
+{{end}}
