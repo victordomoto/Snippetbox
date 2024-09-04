@@ -311,3 +311,17 @@ footer {
     color: #6A6C6F;
     text-align: center;
 }
+nav {
+    display: flex;
+    justify-content: space-between; /* Espaça igualmente os itens */
+    align-items: center; /* Alinha os itens verticalmente ao centro */
+}
+
+/* Define a aparência e o layout do contêiner central */
+.nav-center {
+    flex: 1; /* Faz o contêiner central ocupar o máximo de espaço disponível */
+    display: flex; /* Usa flexbox para o formulário de busca */
+    justify-content: center; /* Centraliza o formulário horizontalmente */
+}
+
+

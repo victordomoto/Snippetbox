@@ -52,6 +52,31 @@ func (app *application) home(w http.ResponseWriter, r *http.Request) {
 	app.render(w, http.StatusOK, "home.tmpl.html", data)
 }
 
+func (app *application) search(w http.ResponseWriter, r *http.Request) {
+	// Recupera o termo de busca da URL
+	query := r.URL.Query().Get("q")
+
+	// Verifica se o termo de busca está presente
+	if query == "" {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	// Busca snippets que correspondem ao termo de busca
+	snippets, err := app.snippets.Search(query)
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	// Cria o template data para passar para o template
+	data := app.newTemplateData(r)
+	data.Snippets = snippets
+	data.SearchQuery = query
+
+	// Renderiza a página de busca com os resultados
+	app.render(w, http.StatusOK, "search.tmpl.html", data)
+}
 func (app *application) about(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 

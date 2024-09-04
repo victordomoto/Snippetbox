@@ -10,6 +10,7 @@ type SnippetModelInterface interface {
 	Insert(title string, content string, expires int) (int, error)
 	Get(id int) (*Snippet, error)
 	Latest() ([]*Snippet, error)
+	Search(term string) ([]*Snippet, error)
 }
 
 type Snippet struct {
@@ -68,6 +69,35 @@ func (m *SnippetModel) Latest() ([]*Snippet, error) {
 	WHERE expires > UTC_TIMESTAMP() ORDER BY id DESC LIMIT 10`
 
 	rows, err := m.DB.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	snippets := []*Snippet{}
+
+	for rows.Next() {
+		s := &Snippet{}
+
+		err = rows.Scan(&s.ID, &s.Title, &s.Content, &s.Created, &s.Expires)
+		if err != nil {
+			return nil, err
+		}
+
+		snippets = append(snippets, s)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return snippets, nil
+}
+func (m *SnippetModel) Search(term string) ([]*Snippet, error) {
+	stmt := `SELECT id, title, content, created, expires FROM snippets
+	WHERE expires > UTC_TIMESTAMP() AND title LIKE ? ORDER BY id DESC`
+
+	rows, err := m.DB.Query(stmt, "%"+term+"%")
 	if err != nil {
 		return nil, err
 	}

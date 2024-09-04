@@ -24,6 +24,12 @@ func (app *application) routes() http.Handler {
 		),
 	)
 	router.Handler(
+		http.MethodGet, "/search",
+		app.sessionManager.LoadAndSave(
+			app.authenticate(http.HandlerFunc(app.search)),
+		),
+	)
+	router.Handler(
 		http.MethodGet, "/about",
 		app.sessionManager.LoadAndSave(
 			app.authenticate(http.HandlerFunc(app.about)),
